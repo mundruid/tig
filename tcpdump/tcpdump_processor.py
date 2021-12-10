@@ -1,21 +1,23 @@
 #!/usr/bin/python3
-"""Metrics utility for reporting IoT measurements."""
+"""Tshark processing prototype."""
 import argparse
-import sys
-import os
-import time
 
 
-def read_process_tcpdump(filter_key, line, epoch):
+def process_tcpdump(lines, tags):
     """Read stdin tcpdump json and call the print function to convert it to influxdb protocol."""
 
-    key_value = line.split(": ")
-    key = key_value[0].strip()
-    value = key_value[1].strip()
+    for line in lines:
+        if ": " in line:
+            for tag in tags:
+                # process line with format: "tcp.srcport": "34224",
+                key_value = line.split(": ")
+                key = key_value[0].strip()
+                value = key_value[1].strip()
 
-    if filter_key in key:
-        key = key.split(".")[1]
-        print(f"tshark,{key[:-1]}={value[1:-2]} {key[:-1]}={value[1:-2]}")
+                if tag in key:
+                    key = key.split(".")[1]
+                    # output is in influx line protocol
+                    print(f'tshark,{key[:-1]}={value[1:-2]} {key[:-1]}="{value[1:-2]}"')
 
 
 def main():
@@ -25,22 +27,14 @@ def main():
     # Set argparse and argparse arguments
     ####
     parser = argparse.ArgumentParser(description="Tcpdump processor prototype")
-    parser.add_argument("-t", "--tag", nargs="+", type=str, help="List of filter keys.")
-    parser.add_argument(
-        "-f", "--field", nargs="+", type=str, help="List of filter keys."
-    )
+    parser.add_argument("-t", "--tags", nargs="+", type=str, help="List of tag keys.")
     args = parser.parse_args()
 
-    # tshark_file = open("./tshark.log", "r")
-
-    with open("/usr/local/sbin/tshark.log", "r") as tshark_file:
+    with open("/usr/local/sbin/tshark.json", "r") as tshark_file:
         lines = tshark_file.readlines()
-        for line in lines:
-            if ": " in line:
-                for value in args.tag:
-                    read_process_tcpdump(value, line)
+        process_tcpdump(lines, args.tags)
 
-    # while True:
+    # while True: # real time file streaming
     #     # read last line of file
     #     line = tshark_file.readline()  # sleep if file hasn't been updated
     #     if not line:

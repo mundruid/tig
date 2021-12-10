@@ -35,7 +35,6 @@ services:
       context: "."
       target: "final"
     volumes:
-      #   - "./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf"
       - "./tcpdump:/usr/local/sbin"
     environment:
       INFLUXDB_USER: "user"
