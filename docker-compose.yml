@@ -31,9 +31,12 @@ services:
     restart: unless-stopped
 
   telegraf:
-    image: telegraf:1.19
+    build:
+      context: "."
+      target: "final"
     volumes:
-      - "./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf"
+      #   - "./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf"
+      - "./tcpdump:/usr/local/sbin"
     environment:
       INFLUXDB_USER: "user"
       INFLUXDB_USER_PASSWORD: "${INFLUXDB_USER_PASSWORD}"
